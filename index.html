@@ -3,11 +3,111 @@
 <html lang="el">
 <head>
   <meta charset="UTF-8">
-  <title>Anodos Quiz - Level 1</title>
+  <title>Anodos Quiz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {{ font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }}
+    .quiz-container {{ max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }}
+    h1, h2 {{ text-align: center; }}
+    select, button {{ width: 100%; padding: 10px; margin: 10px 0; }}
+    .question {{ font-size: 18px; margin: 15px 0; }}
+    .options button {{ display: block; width: 100%; margin: 5px 0; padding: 10px; font-size: 16px; }}
+    .feedback {{ margin-top: 10px; font-weight: bold; }}
+    .result {{ margin-top: 20px; font-size: 20px; text-align: center; }}
+  </style>
 </head>
 <body>
-  <h1>Καλώς ήρθες στο Anodos Quiz!</h1>
-  <p>Το quiz είναι έτοιμο για χρήση. Αν βλέπεις αυτή τη σελίδα, τότε το site σου λειτουργεί σωστά.</p>
+  <div class="quiz-container">
+    <h1>Anodos Quiz</h1>
+    <h2>Επιλογή Θεματικής και Επιπέδου</h2>
+    <select id="topicSelect">
+      <option value="verbal">Λεκτικές</option>
+      <option value="logic">Λογικές</option>
+    </select>
+    <select id="levelSelect">
+      <option value="1">Επίπεδο 1</option>
+      <option value="2">Επίπεδο 2</option>
+      <option value="3">Επίπεδο 3</option>
+    </select>
+    <button onclick="startQuiz()">Ξεκίνα</button>
+
+    <div id="quiz" style="display:none;">
+      <div class="question" id="question"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const questions = {{
+      verbal: {{
+        1: [{question: "Ερώτηση 1", options: ['A', 'B', 'C', 'D', 'E'], answer: 0},{question: "Ερώτηση 2", options: ['A', 'B', 'C', 'D', 'E'], answer: 1},{question: "Ερώτηση 3", options: ['A', 'B', 'C', 'D', 'E'], answer: 2},{question: "Ερώτηση 4", options: ['A', 'B', 'C', 'D', 'E'], answer: 3},{question: "Ερώτηση 5", options: ['A', 'B', 'C', 'D', 'E'], answer: 4}],
+        2: [{question: "Ερώτηση 1", options: ['A', 'B', 'C', 'D', 'E'], answer: 0},{question: "Ερώτηση 2", options: ['A', 'B', 'C', 'D', 'E'], answer: 1},{question: "Ερώτηση 3", options: ['A', 'B', 'C', 'D', 'E'], answer: 2},{question: "Ερώτηση 4", options: ['A', 'B', 'C', 'D', 'E'], answer: 3},{question: "Ερώτηση 5", options: ['A', 'B', 'C', 'D', 'E'], answer: 4}],
+        3: [{question: "Ερώτηση 1", options: ['A', 'B', 'C', 'D', 'E'], answer: 0},{question: "Ερώτηση 2", options: ['A', 'B', 'C', 'D', 'E'], answer: 1},{question: "Ερώτηση 3", options: ['A', 'B', 'C', 'D', 'E'], answer: 2},{question: "Ερώτηση 4", options: ['A', 'B', 'C', 'D', 'E'], answer: 3},{question: "Ερώτηση 5", options: ['A', 'B', 'C', 'D', 'E'], answer: 4}]
+      }},
+      logic: {{
+        1: [{question: "Ερώτηση 1", options: ['A', 'B', 'C', 'D', 'E'], answer: 0},{question: "Ερώτηση 2", options: ['A', 'B', 'C', 'D', 'E'], answer: 1},{question: "Ερώτηση 3", options: ['A', 'B', 'C', 'D', 'E'], answer: 2},{question: "Ερώτηση 4", options: ['A', 'B', 'C', 'D', 'E'], answer: 3},{question: "Ερώτηση 5", options: ['A', 'B', 'C', 'D', 'E'], answer: 4}],
+        2: [{question: "Ερώτηση 1", options: ['A', 'B', 'C', 'D', 'E'], answer: 0},{question: "Ερώτηση 2", options: ['A', 'B', 'C', 'D', 'E'], answer: 1},{question: "Ερώτηση 3", options: ['A', 'B', 'C', 'D', 'E'], answer: 2},{question: "Ερώτηση 4", options: ['A', 'B', 'C', 'D', 'E'], answer: 3},{question: "Ερώτηση 5", options: ['A', 'B', 'C', 'D', 'E'], answer: 4}],
+        3: [{question: "Ερώτηση 1", options: ['A', 'B', 'C', 'D', 'E'], answer: 0},{question: "Ερώτηση 2", options: ['A', 'B', 'C', 'D', 'E'], answer: 1},{question: "Ερώτηση 3", options: ['A', 'B', 'C', 'D', 'E'], answer: 2},{question: "Ερώτηση 4", options: ['A', 'B', 'C', 'D', 'E'], answer: 3},{question: "Ερώτηση 5", options: ['A', 'B', 'C', 'D', 'E'], answer: 4}]
+      }}
+    }};
+
+    let current = 0;
+    let score = 0;
+    let selectedSet = [];
+
+    function startQuiz() {{
+      const topic = document.getElementById("topicSelect").value;
+      const level = document.getElementById("levelSelect").value;
+      selectedSet = questions[topic][level];
+      if (!selectedSet || selectedSet.length === 0) {{
+        alert("Δεν υπάρχουν ερωτήσεις.");
+        return;
+      }}
+      document.getElementById("quiz").style.display = "block";
+      current = 0;
+      score = 0;
+      document.getElementById("result").innerText = "";
+      loadQuestion();
+    }}
+
+    function loadQuestion() {{
+      if (current >= selectedSet.length) {{
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("result").innerText = `Σκορ: ${score} / ${selectedSet.length}`;
+        return;
+      }}
+      const q = selectedSet[current];
+      document.getElementById("question").innerText = q.question;
+      const opts = document.getElementById("options");
+      opts.innerHTML = "";
+      q.options.forEach((opt, idx) => {{
+        const btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(idx);
+        opts.appendChild(btn);
+      }});
+    }}
+
+    function checkAnswer(selected) {{
+      const q = selectedSet[current];
+      const feedback = document.getElementById("feedback");
+      if (selected === q.answer) {{
+        feedback.innerText = "Σωστό!";
+        feedback.style.color = "green";
+        score++;
+      }} else {{
+        feedback.innerText = `Λάθος! Σωστή απάντηση: ${q.options[q.answer]}`;
+        feedback.style.color = "red";
+      }}
+      current++;
+      setTimeout(() => {{
+        feedback.innerText = "";
+        loadQuestion();
+      }}, 1200);
+    }}
+  </script>
 </body>
 </html>
